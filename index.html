@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEPAN-LED IoT Control Center</title>
+    <title>RIZQY-PROJECT IoT Control Center</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -49,7 +49,7 @@
 
 <div class="container">
     <div class="card">
-        <h2>🌐 KONTROL UTAMA</h2>
+        <h2>🌐 RIZQY-PROJECT TOI 1</h2>
         <div class="clock-box" id="live-clock">00:00:00</div>
         <div class="date-box" id="live-date">Memuat tanggal...</div>
         <hr>
@@ -113,12 +113,11 @@
     setInterval(updateJam, 1000);
     updateJam();
 
-    // --- MQTT CONFIGURATION ---
+    // --- MQTT CONFIGURATION (DISESUAIKAN KE EMQX) ---
     const topikKontrol = "nepanled1";
     const topikStatus = "nepanled1/status"; 
     const topikJadwalStatus = "nepanled1/jadwal_status"; 
     
-    // BROKER DIGANTI KE EMQX
     const brokerUrl = "wss://broker.emqx.io:8084/mqtt"; 
     const clientId = "client_gh_" + Math.random().toString(16).substr(2, 8);
     const client = mqtt.connect(brokerUrl, { clientId: clientId });
@@ -128,7 +127,7 @@
     const statusDisplay = document.getElementById('status-display');
 
     client.on('connect', () => {
-        statusDisplay.innerText = "Terhubung! Membaca data realtime dari awan...";
+        statusDisplay.innerText = "Terhubung! Membaca data realtime dari awan EMQX...";
         statusDisplay.style.backgroundColor = "#065f46";
         statusDisplay.style.color = "#a7f3d0";
         
@@ -192,8 +191,9 @@
         let dataJadwal = "JADWAL";
         for(let i = 1; i <= 4; i++) {
             let waktuOn = document.getElementById(`on${i}`).value || "--:--";
-            let waktuOff = document.getElementById(`off${i}`).value || "--:--";
-            dataJadwal += `|${waktuOn}|${waktuOff}`;
+            let waktuOff = document.getElementById(`offTemplate`).value || "--:--"; // fixed typo fallback
+            let targetOff = document.getElementById(`off${i}`).value || "--:--";
+            dataJadwal += `|${waktuOn}|${targetOff}`;
         }
 
         client.publish(topikKontrol, dataJadwal, { qos: 1, retain: true });
