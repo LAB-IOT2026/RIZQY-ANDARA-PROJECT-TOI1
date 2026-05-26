@@ -59,7 +59,7 @@
             <span id="lamp-text">STATUS: SINKRONISASI...</span>
         </div>
 
-        <div class="status-box" id="status-display">Menghubungkan ke Broker HiveMQ...</div>
+        <div class="status-box" id="status-display">Menghubungkan ke Broker EMQX...</div>
         
         <div class="btn-group">
             <button onclick="kirimPerintah('ON')" class="btn btn-on" id="btn-nyala" disabled>NYALAKAN</button>
@@ -118,7 +118,8 @@
     const topikStatus = "nepanled1/status"; 
     const topikJadwalStatus = "nepanled1/jadwal_status"; 
     
-    const brokerUrl = "wss://broker.hivemq.com:8884/mqtt"; 
+    // BROKER DIGANTI KE EMQX
+    const brokerUrl = "wss://broker.emqx.io:8084/mqtt"; 
     const clientId = "client_gh_" + Math.random().toString(16).substr(2, 8);
     const client = mqtt.connect(brokerUrl, { clientId: clientId });
 
