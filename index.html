@@ -15,17 +15,14 @@
         h3 { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #38bdf8; }
         hr { border: 0; height: 1px; background: #334155; margin: 15px 0; }
         
-        /* Jam Realtime */
         .clock-box { font-size: 32px; font-weight: 800; color: #00f2fe; background: #0f172a; padding: 12px; border-radius: 10px; margin: 10px 0; font-family: 'Courier New', Courier, monospace; border: 1px solid #334155; letter-spacing: 2px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6); }
         .date-box { font-size: 13px; color: #94a3b8; margin-bottom: 5px; }
 
-        /* Indikator */
         .indicator-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 20px 0; font-weight: 700; font-size: 16px; }
         .indicator-dot { width: 20px; height: 20px; border-radius: 50%; background-color: #64748b; display: inline-block; transition: all 0.4s ease; }
         .status-on { background-color: #10b981; box-shadow: 0 0 15px #10b981; }
         .status-off { background-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
 
-        /* Tombol Kontrol */
         .btn-group { display: flex; justify-content: space-between; gap: 10px; }
         .btn { flex: 1; padding: 14px; font-size: 15px; font-weight: 700; text-align: center; border-radius: 8px; color: #0f172a; cursor: pointer; border: none; transition: all 0.2s ease; }
         .btn-on { background: linear-gradient(to right, #10b981, #059669); color: white; }
@@ -36,7 +33,6 @@
         
         .status-box { padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 15px; text-align: center; background-color: #334155; color: #cbd5e1; border: 1px solid #475569; }
         
-        /* Baris Input Timer */
         .timer-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; padding: 10px; background: #0f172a; border-radius: 8px; border-left: 4px solid #38bdf8; }
         .timer-row span { font-weight: 600; font-size: 14px; color: #e2e8f0; }
         .timer-row label { font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 5px; }
@@ -113,7 +109,7 @@
     setInterval(updateJam, 1000);
     updateJam();
 
-    // --- MQTT CONFIGURATION (DISESUAIKAN KE EMQX) ---
+    // --- MQTT CONFIGURATION ---
     const topikKontrol = "nepanled1";
     const topikStatus = "nepanled1/status"; 
     const topikJadwalStatus = "nepanled1/jadwal_status"; 
@@ -138,7 +134,6 @@
         client.subscribe(topikStatus);
         client.subscribe(topikJadwalStatus);
         
-        // Request status ter-update ke ESP8266
         client.publish(topikKontrol, "STATUS_REQ"); 
     });
 
@@ -146,7 +141,6 @@
         const pesan = message.toString();
         const jamSekarang = document.getElementById('live-clock').innerText;
         
-        // Handler Status Lampu
         if (topic === topikStatus) {
             if (pesan === 'ON') {
                 dotElement.className = 'indicator-dot status-on';
@@ -161,7 +155,6 @@
             }
         }
         
-        // Handler Pengisian Form Waktu Berdasarkan Memori ESP8266 Realtime
         if (topic === topikJadwalStatus && pesan.startsWith("JADWAL")) {
             const bagian = pesan.split("|");
             let indexData = 1;
@@ -170,8 +163,8 @@
                 const isiOn = bagian[indexData++];
                 const isiOff = bagian[indexData++];
                 
-                document.getElementById(`on${i}`).value = (isiOn === "--:--") ? "" : isiOn;
-                document.getElementById(`off${i}`).value = (isiOff === "--:--") ? "" : isiOff;
+                document.getElementById(`on${i}`).value = (isiOn === "--:--" || !isiOn) ? "" : isiOn;
+                document.getElementById(`off${i}`).value = (isiOff === "--:--" || !isiOff) ? "" : isiOff;
             }
             document.getElementById("sync-text").innerText = "✓ Form Jadwal Sinkron dengan Alat!";
             document.getElementById("sync-text").style.color = "#10b981";
@@ -184,6 +177,7 @@
         }
     }
 
+    // --- PERBAIKAN DI SINI (SUDAH FIXED) ---
     function simpanJadwal(event) {
         event.preventDefault();
         if (!client.connected) return;
@@ -191,9 +185,8 @@
         let dataJadwal = "JADWAL";
         for(let i = 1; i <= 4; i++) {
             let waktuOn = document.getElementById(`on${i}`).value || "--:--";
-            let waktuOff = document.getElementById(`offTemplate`).value || "--:--"; // fixed typo fallback
-            let targetOff = document.getElementById(`off${i}`).value || "--:--";
-            dataJadwal += `|${waktuOn}|${targetOff}`;
+            let waktuOff = document.getElementById(`off${i}`).value || "--:--"; 
+            dataJadwal += `|${waktuOn}|${waktuOff}`;
         }
 
         client.publish(topikKontrol, dataJadwal, { qos: 1, retain: true });
